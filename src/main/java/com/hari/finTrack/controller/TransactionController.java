@@ -1,5 +1,6 @@
 package com.hari.finTrack.controller;
 
+import com.hari.finTrack.exception.ResourceNotFoundException;
 import com.hari.finTrack.model.Transaction;
 import com.hari.finTrack.model.User;
 import com.hari.finTrack.repository.UserRepository;
@@ -59,7 +60,8 @@ public class TransactionController {
 	// Obtiene la entidad User completa a partir del UserPrincipal que viene del token JWT.
 	private User getUser(UserPrincipal principal) {
 		return userRepository.findById(principal.userId())
-				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+				.orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
 	}
 
 	/*
@@ -87,11 +89,7 @@ public class TransactionController {
 	@GetMapping("/{id}")
 	public ResponseEntity<Transaction> obtener(@PathVariable Long id,
 											   @AuthenticationPrincipal UserPrincipal principal) {
-		try {
-			return ResponseEntity.ok(transactionService.findByIdAndUser(id, getUser(principal)));
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.notFound().build();
-		}
+		return ResponseEntity.ok(transactionService.findByIdAndUser(id, getUser(principal)));
 	}
 
 	/*
@@ -134,11 +132,7 @@ public class TransactionController {
 	public ResponseEntity<Transaction> actualizar(@PathVariable Long id,
 												  @Valid @RequestBody Transaction transaction,
 												  @AuthenticationPrincipal UserPrincipal principal) {
-		try {
-			return ResponseEntity.ok(transactionService.update(id, transaction, getUser(principal)));
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.notFound().build();
-		}
+		return ResponseEntity.ok(transactionService.update(id, transaction, getUser(principal)));
 	}
 
 	/*
@@ -153,11 +147,7 @@ public class TransactionController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id,
 										@AuthenticationPrincipal UserPrincipal principal) {
-		try {
-			transactionService.deleteByIdAndUser(id, getUser(principal));
-			return ResponseEntity.noContent().build();
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.notFound().build();
-		}
+		transactionService.deleteByIdAndUser(id, getUser(principal));
+		return ResponseEntity.noContent().build();
 	}
 }

@@ -1,5 +1,6 @@
 package com.hari.finTrack.service;
 
+import com.hari.finTrack.exception.ResourceNotFoundException;
 import com.hari.finTrack.model.Transaction;
 import com.hari.finTrack.model.User;
 import com.hari.finTrack.repository.TransactionRepository;
@@ -39,7 +40,7 @@ public class TransactionService {
 	// Si el usuario A intenta ver la transacción del usuario B → lanza excepción → 404
 	public Transaction findByIdAndUser(Long id, User user) {
 		return transactionRepository.findByIdAndUser(id, user)
-				.orElseThrow(() -> new IllegalArgumentException("Transacción no encontrada: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException("Transacción no encontrada: " + id));
 	}
 
 	// Crea una transacción nueva y la asocia automáticamente al usuario autenticado.
@@ -68,7 +69,7 @@ public class TransactionService {
 	@Transactional
 	public void deleteByIdAndUser(Long id, User user) {
 		if (!transactionRepository.existsByIdAndUser(id, user)) {
-			throw new IllegalArgumentException("Transacción no encontrada: " + id);
+			throw new ResourceNotFoundException("Transacción no encontrada: " + id);
 		}
 		transactionRepository.deleteById(id);
 	}

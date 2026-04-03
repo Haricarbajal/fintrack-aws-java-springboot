@@ -3,6 +3,8 @@ package com.hari.finTrack.controller;
 import com.hari.finTrack.dto.AuthResponse;
 import com.hari.finTrack.dto.LoginRequest;
 import com.hari.finTrack.dto.RegisterRequest;
+import com.hari.finTrack.exception.DuplicateResourceException;
+import com.hari.finTrack.exception.UnauthorizedException;
 import com.hari.finTrack.model.User;
 import com.hari.finTrack.repository.UserRepository;
 import com.hari.finTrack.security.JwtUtil;
@@ -68,10 +70,9 @@ public class AuthController {
 	 * El token devuelto sirve para autenticarse inmediatamente sin hacer login.
 	 */
 	@PostMapping("/register")
-	public ResponseEntity<?> register( @Valid @RequestBody RegisterRequest request) {
+	public ResponseEntity<AuthResponse> register( @Valid @RequestBody RegisterRequest request){
 		if (userRepository.existsByEmail(request.email())) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body("Ya existe un usuario con ese email");
+			throw new DuplicateResourceException("Ya existe un usuario con ese email");
 		}
 
 		User user = new User();
@@ -105,13 +106,13 @@ public class AuthController {
 	 * en el header Authorization de cada petición protegida.
 	 */
 	@PostMapping("/login")
-	public ResponseEntity<?> login( @Valid @RequestBody LoginRequest request) {
+	public ResponseEntity<AuthResponse> login( @Valid @RequestBody LoginRequest request){
 		return userRepository.findByEmail(request.email())
 				.filter(user -> passwordEncoder.matches(request.password(), user.getPassword()))
 				.map(user -> {
 					String token = jwtUtil.generateToken(user.getId(), user.getEmail());
-					return ResponseEntity.ok((Object) new AuthResponse(token, user.getEmail(), user.getNombre()));
+					return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), user.getNombre()));
 				})
-				.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas"));
+				.orElseThrow(() -> new UnauthorizedException("Credenciales inválidas"));
 	}
 }
