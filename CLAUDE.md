@@ -25,7 +25,7 @@ Objetivo: que el codigo se vea limpio, robusto y con buenas practicas.
 - [x] 1.1 Validacion de entrada (@Valid, @NotBlank, @Email, @Min en DTOs) ✓ COMPLETADO
 - [x] 1.2 Excepciones personalizadas (ResourceNotFoundException, DuplicateResourceException, etc.) ✓ COMPLETADO
 - [x] 1.3 Manejo global de errores (@ControllerAdvice + @ExceptionHandler) ✓ COMPLETADO
-- [ ] 1.4 DTOs de respuesta para Transaction (no exponer entidades directamente)
+- [x] 1.4 DTOs de respuesta para Transaction (no exponer entidades directamente) ✓ COMPLETADO
 - [ ] 1.5 Logging con SLF4J (@Slf4j en services y controllers)
 - [ ] 1.6 Configuracion CORS (preparar para frontend)
 - [ ] 1.7 Variables de entorno para secretos (JWT secret, DB password) - no hardcodear
@@ -76,18 +76,19 @@ Objetivo: flujo de trabajo profesional completo.
 
 ## Progreso actual
 - Fase actual: FASE 1
-- Ultimo paso completado: 1.3 Manejo global de errores (2026-04-03)
-- Proximo paso: 1.4 DTOs de respuesta para Transaction (no exponer entidades directamente)
-- Estado: 1.3 completado, listo para implementar DTOs de respuesta
+- Ultimo paso completado: 1.4 DTOs de respuesta para Transaction (2026-04-28)
+- Proximo paso: 1.5 Logging con SLF4J (@Slf4j en services y controllers)
+- Estado: 1.4 completado, listo para implementar logging
 
 ## Contexto para retomar sesion
 Cuando Estefano vuelva y diga que quiere continuar con finTrack:
-1. Recordarle que estamos en FASE 1, paso 1.4 (DTOs de respuesta para Transaction)
+1. Recordarle que estamos en FASE 1, paso 1.5 (Logging con SLF4J)
 2. Ya tiene GlobalExceptionHandler con handlers para ResourceNotFoundException (404), DuplicateResourceException (409) y UnauthorizedException (401)
 3. AuthController ya esta limpio: register lanza DuplicateResourceException, login lanza UnauthorizedException, ambos retornan ResponseEntity<AuthResponse>
-4. Necesita crear TransactionResponse DTO en com.hari.finTrack.dto para no exponer la entidad Transaction directamente en los endpoints
-5. Motivo: la entidad Transaction tiene el campo User completo, que no debe exponerse al cliente (password, etc.)
-6. NO escribir el codigo por el, solo explicar y que el lo haga
+4. TransactionResponse DTO creado en com.hari.finTrack.dto con metodo static fromTransaction()
+5. TransactionController ya usa TransactionResponse en todos los endpoints (no expone la entidad)
+6. Necesita agregar logging con @Slf4j en services y controllers para tener trazabilidad
+7. NO escribir el codigo por el, solo explicar y que el lo haga
 
 ### Lo que se hizo en 1.1:
 - Dependencia spring-boot-starter-validation agregada en pom.xml
@@ -104,6 +105,15 @@ Cuando Estefano vuelva y diga que quiere continuar con finTrack:
 - TransactionService: reemplazados 2 IllegalArgumentException por ResourceNotFoundException
 - TransactionController: getUser() y 3 catch cambiados a ResourceNotFoundException
 - DuplicateResourceException aun no se usa (se usara en 1.3 con @ControllerAdvice)
+
+### Lo que se hizo en 1.4:
+- TransactionResponse DTO creado en com.hari.finTrack.dto
+- Campos: id, descripcion, monto, tipo, fecha, categoria (sin User)
+- Metodo static fromTransaction(Transaction) que convierte entidad a DTO
+- TransactionController actualizado: todos los endpoints devuelven TransactionResponse en vez de Transaction
+- Endpoint listar usa .stream().map(TransactionResponse::fromTransaction).toList()
+- Endpoints obtener, crear, actualizar usan TransactionResponse.fromTransaction(...)
+- Endpoint eliminar sin cambios (devuelve Void)
 
 ### Lo que se hizo en 1.3:
 - GlobalExceptionHandler creado en com.hari.finTrack.exception con @ControllerAdvice

@@ -1,5 +1,6 @@
 package com.hari.finTrack.controller;
 
+import com.hari.finTrack.dto.TransactionResponse;
 import com.hari.finTrack.exception.ResourceNotFoundException;
 import com.hari.finTrack.model.Transaction;
 import com.hari.finTrack.model.User;
@@ -73,8 +74,8 @@ public class TransactionController {
 	 * Si no tiene transacciones, devuelve una lista vacía [].
 	 */
 	@GetMapping
-	public List<Transaction> listar(@AuthenticationPrincipal UserPrincipal principal) {
-		return transactionService.findAllByUser(getUser(principal));
+	public List<TransactionResponse> listar(@AuthenticationPrincipal UserPrincipal principal) {
+		return transactionService.findAllByUser(getUser(principal)).stream().map(TransactionResponse::fromTransaction).toList();
 	}
 
 	/*
@@ -87,9 +88,9 @@ public class TransactionController {
 	 *   404 NOT FOUND → La transacción no existe o pertenece a otro usuario
 	 */
 	@GetMapping("/{id}")
-	public ResponseEntity<Transaction> obtener(@PathVariable Long id,
+	public ResponseEntity<TransactionResponse> obtener(@PathVariable Long id,
 											   @AuthenticationPrincipal UserPrincipal principal) {
-		return ResponseEntity.ok(transactionService.findByIdAndUser(id, getUser(principal)));
+		return ResponseEntity.ok(TransactionResponse.fromTransaction(transactionService.findByIdAndUser(id, getUser(principal))));
 	}
 
 	/*
@@ -111,10 +112,10 @@ public class TransactionController {
 	 * El campo "user" NO se envía en el body; se asigna automáticamente del token.
 	 */
 	@PostMapping
-	public ResponseEntity<Transaction> crear(@Valid @RequestBody Transaction transaction,
+	public ResponseEntity<TransactionResponse> crear(@Valid @RequestBody Transaction transaction,
 											 @AuthenticationPrincipal UserPrincipal principal) {
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(transactionService.create(transaction, getUser(principal)));
+				.body(TransactionResponse.fromTransaction(transactionService.create(transaction, getUser(principal))));
 	}
 
 	/*
@@ -129,10 +130,10 @@ public class TransactionController {
 	 *   404 NOT FOUND → No existe o pertenece a otro usuario
 	 */
 	@PutMapping("/{id}")
-	public ResponseEntity<Transaction> actualizar(@PathVariable Long id,
+	public ResponseEntity<TransactionResponse> actualizar(@PathVariable Long id,
 												  @Valid @RequestBody Transaction transaction,
 												  @AuthenticationPrincipal UserPrincipal principal) {
-		return ResponseEntity.ok(transactionService.update(id, transaction, getUser(principal)));
+		return ResponseEntity.ok(TransactionResponse.fromTransaction(transactionService.update(id, transaction, getUser(principal))));
 	}
 
 	/*
