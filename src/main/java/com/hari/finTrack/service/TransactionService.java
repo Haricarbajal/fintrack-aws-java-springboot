@@ -4,6 +4,9 @@ import com.hari.finTrack.exception.ResourceNotFoundException;
 import com.hari.finTrack.model.Transaction;
 import com.hari.finTrack.model.User;
 import com.hari.finTrack.repository.TransactionRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ import java.util.List;
  * @Transactional: garantiza que si algo falla a mitad de la operación,
  * los cambios se revierten (rollback automático).
  */
+@Slf4j
 @Service
 public class TransactionService {
 
@@ -33,12 +37,14 @@ public class TransactionService {
 
 	// Devuelve todas las transacciones del usuario (solo las suyas)
 	public List<Transaction> findAllByUser(User user) {
+		log.info("Buscando todas las transacciones del usuario: {}", user.getEmail());
 		return transactionRepository.findByUser(user);
 	}
 
 	// Busca una transacción por ID, pero solo si pertenece al usuario.
 	// Si el usuario A intenta ver la transacción del usuario B → lanza excepción → 404
 	public Transaction findByIdAndUser(Long id, User user) {
+		log.info("Buscando transaccion por id: {}", id);
 		return transactionRepository.findByIdAndUser(id, user)
 				.orElseThrow(() -> new ResourceNotFoundException("Transacción no encontrada: " + id));
 	}
@@ -47,6 +53,7 @@ public class TransactionService {
 	// Se pone id=null para evitar que el cliente intente forzar un ID.
 	@Transactional
 	public Transaction create(Transaction transaction, User user) {
+		log.info("Creando transaccion: {}", transaction);
 		transaction.setId(null);
 		transaction.setUser(user);
 		return transactionRepository.save(transaction);
@@ -56,6 +63,7 @@ public class TransactionService {
 	// Primero verifica que la transacción exista Y pertenezca al usuario.
 	@Transactional
 	public Transaction update(Long id, Transaction datos, User user) {
+		log.info("Actualizando transaccion: {}", id);
 		Transaction existente = findByIdAndUser(id, user);
 		existente.setDescripcion(datos.getDescripcion());
 		existente.setMonto(datos.getMonto());
@@ -68,6 +76,7 @@ public class TransactionService {
 	// Elimina una transacción solo si existe y pertenece al usuario.
 	@Transactional
 	public void deleteByIdAndUser(Long id, User user) {
+		log.info("Eliminando transaccion: {}", id);
 		if (!transactionRepository.existsByIdAndUser(id, user)) {
 			throw new ResourceNotFoundException("Transacción no encontrada: " + id);
 		}

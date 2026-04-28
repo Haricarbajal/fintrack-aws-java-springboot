@@ -26,7 +26,7 @@ Objetivo: que el codigo se vea limpio, robusto y con buenas practicas.
 - [x] 1.2 Excepciones personalizadas (ResourceNotFoundException, DuplicateResourceException, etc.) ✓ COMPLETADO
 - [x] 1.3 Manejo global de errores (@ControllerAdvice + @ExceptionHandler) ✓ COMPLETADO
 - [x] 1.4 DTOs de respuesta para Transaction (no exponer entidades directamente) ✓ COMPLETADO
-- [ ] 1.5 Logging con SLF4J (@Slf4j en services y controllers)
+- [x] 1.5 Logging con SLF4J (@Slf4j en services y controllers) ✓ COMPLETADO
 - [ ] 1.6 Configuracion CORS (preparar para frontend)
 - [ ] 1.7 Variables de entorno para secretos (JWT secret, DB password) - no hardcodear
 
@@ -76,19 +76,20 @@ Objetivo: flujo de trabajo profesional completo.
 
 ## Progreso actual
 - Fase actual: FASE 1
-- Ultimo paso completado: 1.4 DTOs de respuesta para Transaction (2026-04-28)
-- Proximo paso: 1.5 Logging con SLF4J (@Slf4j en services y controllers)
-- Estado: 1.4 completado, listo para implementar logging
+- Ultimo paso completado: 1.5 Logging con SLF4J (2026-04-28)
+- Proximo paso: 1.6 Configuracion CORS (preparar para frontend)
+- Estado: 1.5 completado, listo para configurar CORS
 
 ## Contexto para retomar sesion
 Cuando Estefano vuelva y diga que quiere continuar con finTrack:
-1. Recordarle que estamos en FASE 1, paso 1.5 (Logging con SLF4J)
+1. Recordarle que estamos en FASE 1, paso 1.6 (Configuracion CORS)
 2. Ya tiene GlobalExceptionHandler con handlers para ResourceNotFoundException (404), DuplicateResourceException (409) y UnauthorizedException (401)
 3. AuthController ya esta limpio: register lanza DuplicateResourceException, login lanza UnauthorizedException, ambos retornan ResponseEntity<AuthResponse>
 4. TransactionResponse DTO creado en com.hari.finTrack.dto con metodo static fromTransaction()
 5. TransactionController ya usa TransactionResponse en todos los endpoints (no expone la entidad)
-6. Necesita agregar logging con @Slf4j en services y controllers para tener trazabilidad
-7. NO escribir el codigo por el, solo explicar y que el lo haga
+6. Logging con @Slf4j implementado en TransactionController, AuthController, TransactionService (log.info) y GlobalExceptionHandler (log.warn)
+7. Necesita configurar CORS para preparar el backend para un frontend
+8. NO escribir el codigo por el, solo explicar y que el lo haga
 
 ### Lo que se hizo en 1.1:
 - Dependencia spring-boot-starter-validation agregada en pom.xml
@@ -105,6 +106,14 @@ Cuando Estefano vuelva y diga que quiere continuar con finTrack:
 - TransactionService: reemplazados 2 IllegalArgumentException por ResourceNotFoundException
 - TransactionController: getUser() y 3 catch cambiados a ResourceNotFoundException
 - DuplicateResourceException aun no se usa (se usara en 1.3 con @ControllerAdvice)
+
+### Lo que se hizo en 1.5:
+- @Slf4j de Lombok agregado en TransactionController, AuthController, TransactionService y GlobalExceptionHandler
+- TransactionController: log.info en cada endpoint (listar, obtener, crear, actualizar, eliminar)
+- AuthController: log.info en register (despues del check de duplicado) y login
+- TransactionService: log.info en findAllByUser, findByIdAndUser, create, update, deleteByIdAndUser
+- GlobalExceptionHandler: log.warn en los 3 handlers (ResourceNotFoundException, DuplicateResourceException, UnauthorizedException)
+- Se removio log innecesario de getUser() para evitar doble logging
 
 ### Lo que se hizo en 1.4:
 - TransactionResponse DTO creado en com.hari.finTrack.dto

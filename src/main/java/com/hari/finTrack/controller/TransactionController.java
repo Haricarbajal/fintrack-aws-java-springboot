@@ -9,6 +9,7 @@ import com.hari.finTrack.security.UserPrincipal;
 import com.hari.finTrack.service.TransactionService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,7 @@ import java.util.List;
  *   curl -X GET http://localhost:8080/api/transactions \
  *     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController {
@@ -75,6 +77,7 @@ public class TransactionController {
 	 */
 	@GetMapping
 	public List<TransactionResponse> listar(@AuthenticationPrincipal UserPrincipal principal) {
+		log.info("Listando transacciones del usuario: {}", principal.email());
 		return transactionService.findAllByUser(getUser(principal)).stream().map(TransactionResponse::fromTransaction).toList();
 	}
 
@@ -90,6 +93,7 @@ public class TransactionController {
 	@GetMapping("/{id}")
 	public ResponseEntity<TransactionResponse> obtener(@PathVariable Long id,
 											   @AuthenticationPrincipal UserPrincipal principal) {
+		log.info("Obteniendo transaccion: {}", id);
 		return ResponseEntity.ok(TransactionResponse.fromTransaction(transactionService.findByIdAndUser(id, getUser(principal))));
 	}
 
@@ -114,6 +118,7 @@ public class TransactionController {
 	@PostMapping
 	public ResponseEntity<TransactionResponse> crear(@Valid @RequestBody Transaction transaction,
 											 @AuthenticationPrincipal UserPrincipal principal) {
+		log.info("Creando transaccion: {}", transaction);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(TransactionResponse.fromTransaction(transactionService.create(transaction, getUser(principal))));
 	}
@@ -133,6 +138,7 @@ public class TransactionController {
 	public ResponseEntity<TransactionResponse> actualizar(@PathVariable Long id,
 												  @Valid @RequestBody Transaction transaction,
 												  @AuthenticationPrincipal UserPrincipal principal) {
+		log.info("Actualizando transaccion: {}", id);
 		return ResponseEntity.ok(TransactionResponse.fromTransaction(transactionService.update(id, transaction, getUser(principal))));
 	}
 
@@ -148,6 +154,7 @@ public class TransactionController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Long id,
 										@AuthenticationPrincipal UserPrincipal principal) {
+		log.info("Eliminando Transaccion: {}", id);
 		transactionService.deleteByIdAndUser(id, getUser(principal));
 		return ResponseEntity.noContent().build();
 	}

@@ -10,6 +10,7 @@ import com.hari.finTrack.repository.UserRepository;
 import com.hari.finTrack.security.JwtUtil;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  *   4. Ese token se usa en TODAS las peticiones posteriores como:
  *        Header → Authorization: Bearer <token>
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -71,6 +73,9 @@ public class AuthController {
 	 */
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> register( @Valid @RequestBody RegisterRequest request){
+
+		log.info("Registrando usuario: {}", request.email());
+
 		if (userRepository.existsByEmail(request.email())) {
 			throw new DuplicateResourceException("Ya existe un usuario con ese email");
 		}
@@ -107,6 +112,7 @@ public class AuthController {
 	 */
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login( @Valid @RequestBody LoginRequest request){
+		log.info("Iniciando sesion con email...: {}", request.email());
 		return userRepository.findByEmail(request.email())
 				.filter(user -> passwordEncoder.matches(request.password(), user.getPassword()))
 				.map(user -> {
